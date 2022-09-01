@@ -8,7 +8,7 @@
 </p>
 
 ```bash
-yolo hetzner --context test --region fsn1 init yolo-sh/api
+yolo hetzner --context production --region fsn1 init yolo-sh/api
 ```
 <p align="center">
   <img width="759" src="https://user-images.githubusercontent.com/1233275/187968190-0ce41e41-4612-486e-bc3d-64f03fc25ac5.png" alt="Example of use of the Yolo CLI" />
