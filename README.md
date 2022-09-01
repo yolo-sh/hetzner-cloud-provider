@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/1233275/172015952-8f40a3e0-b07b-4c57-8526-bc0870aad76d.jpeg" alt="yolo" width="180" height="180" />
+  <img src="https://user-images.githubusercontent.com/1233275/187983134-17b69812-f4a6-4359-969c-5384ee296ecf.png" alt="Hetzner's logo" width="180" height="180" />
 </p>
 
 <p align="center">
@@ -8,7 +8,7 @@
 </p>
 
 ```bash
-yolo hetzner --region fsn1 init yolo-sh/api
+yolo hetzner --context test --region fsn1 init yolo-sh/api
 ```
 <p align="center">
   <img width="759" src="https://user-images.githubusercontent.com/1233275/187968190-0ce41e41-4612-486e-bc3d-64f03fc25ac5.png" alt="Example of use of the Yolo CLI" />
