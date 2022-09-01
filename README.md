@@ -106,7 +106,7 @@ yolo hetzner --context production --region fsn1 init yolo-sh/api
 
 ### Permissions
 
-Yolo requires your API token to have `Read & Write` permissions. See the next sections to learn more about the actions that will be done on your behalf.
+Your API token needs to have `Read & Write` permissions. See the next sections to learn more about the actions that will be done on your behalf.
 
 ### Authorized instance types
 
