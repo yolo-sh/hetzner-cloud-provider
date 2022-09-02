@@ -80,7 +80,7 @@ In order to access your Hetzner account, the Yolo CLI will first look for creden
 
 - `HCLOUD_REGION`
 
-Otherwise, the configuration files created by the Hetzner CLI (via `hcloud context create`) will be used.
+If not found, the configuration files created by the Hetzner CLI (via `hcloud context create`) will be used.
 
 #### --context
 
@@ -90,7 +90,7 @@ If you have configured the Hetzner CLI with multiple configuration contexts, you
 yolo hetzner --context production init yolo-sh/api
 ```
 
-**By default, Yolo will use the active context.**
+**By default, Yolo will use the `active` context.**
 
 #### --region
 
@@ -126,11 +126,11 @@ The schema above describe all the components that may be created in your Hetzner
 
 ### Init
 
-#### The first time Yolo is used in a region
-
 ```bash
 yolo hetzner init yolo-sh/api --instance-type cx11
 ```
+
+#### The first time Yolo is used in a region
 
 When running the `init` command for the first time in a region, the following components will be created:
 
@@ -140,7 +140,7 @@ When running the `init` command for the first time in a region, the following co
 
 #### On each init
 
-When running the `init` command, the following components will be created:
+Each time the `init` command is run for a new environment, the following components will be created:
 
 - A `firewall` named `yolo-${ENV_NAME}-firewall` to let your environment accepts `SSH` connections on port `2200`.
 
