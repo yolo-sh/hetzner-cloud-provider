@@ -38,7 +38,7 @@ To begin, create your first environment using the command:
 
   yolo hetzner init <repository>
 
-Once initialized, you may want to connect it using the command: 
+Once initialized, you may want to connect to it using the command: 
 
   yolo hetzner edit <repository>
 
