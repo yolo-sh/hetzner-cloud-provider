@@ -21,7 +21,7 @@ yolo hetzner --context production --region fsn1 init yolo-sh/api
         - [--region](#--region)
     - [Permissions](#permissions)
     - [Authorized instance types](#authorized-instance-types)
-- [Infrastructure lifecycle](#infrastructure-lifecycle)
+- [Infrastructure](#infrastructure)
     - [Init](#init)
     - [Edit](#edit)
     - [Open port](#open-port)
