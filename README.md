@@ -118,7 +118,7 @@ To be used with Yolo, the chosen instance must be **<ins>a cloud instance</ins>*
 cx11, cpx31, cx51...
 ```
 
-## Infrastructure lifecycle
+## Infrastructure
 
 ![Hetzner infra](https://user-images.githubusercontent.com/1233275/188092894-c20da9fb-7a5b-4a6f-8381-ab0e25931e98.png)
 
