@@ -120,7 +120,7 @@ cx11, cpx31, cx51...
 
 ## Infrastructure lifecycle
 
-![infra](https://user-images.githubusercontent.com/1233275/187925670-e06790b5-0084-4d91-a18e-160c771b4f4a.png)
+![Hetzner infra](https://user-images.githubusercontent.com/1233275/188092894-c20da9fb-7a5b-4a6f-8381-ab0e25931e98.png)
 
 The schema above describe all the components that may be created in your Hetzner account. The next sections will describe their lifetime according to your use of the Yolo CLI.
 
