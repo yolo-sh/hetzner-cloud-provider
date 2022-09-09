@@ -146,7 +146,7 @@ Each time the `init` command is run for a new environment, the following compone
 
 - An `SSH key` named `yolo-${ENV_NAME}-ssh-key` to let you access your environment via `SSH`.
 
-- A `server` named `yolo-${ENV_NAME}-server` with a type equals to the one passed via the `--instance-type` flag or `cx11` by default.
+- A `server` named `yolo-${ENV_NAME}-server` with a type equals to the one passed via the `--instance-type` flag **or `cx11` by default**.
 
 ### Edit
 
