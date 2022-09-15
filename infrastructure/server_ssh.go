@@ -41,7 +41,7 @@ func LookupServerInitScriptResults(
 				instanceSSHPort,
 				instanceLoginUser,
 				sshPrivateKeyContent,
-				"cat /tmp/yolo_init_results",
+				"cat /tmp/yolo-init-results",
 			)
 
 			// Make sure timeout returns last error
