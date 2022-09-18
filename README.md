@@ -74,11 +74,9 @@ Use "yolo hetzner [command] --help" for more information about a command.
 
 ### Authentication
 
-In order to access your Hetzner account, the Yolo CLI will first look for credentials in the following environment variables:
+In order to access your Hetzner account, the Yolo CLI will first look for credentials in the following environment variable:
 
 - `HCLOUD_TOKEN`
-
-- `HCLOUD_REGION`
 
 If not found, the configuration files created by the Hetzner CLI (via `hcloud context create`) will be used.
 
@@ -92,7 +90,7 @@ yolo hetzner --context production init yolo-sh/api
 
 **By default, Yolo will use the `active` context.**
 
-#### --region
+#### --region and HCLOUD_REGION
 
 If you want to overwrite the region resolved by the Yolo CLI, you could use the `--region` flag:
 
@@ -103,6 +101,14 @@ yolo hetzner --region fsn1 init yolo-sh/api
 ```shell
 yolo hetzner --context production --region fsn1 init yolo-sh/api
 ```
+
+or the `HCLOUD_REGION` environment variable:
+
+```shell
+export HCLOUD_REGION=fsn1
+```
+
+**The `--region` flag takes precedence over the `HCLOUD_REGION` environment variable.**
 
 ### Permissions
 

@@ -26,17 +26,20 @@ type FilesResolverOpts struct {
 type FilesResolver struct {
 	opts          FilesResolverOpts
 	contextLoader ContextLoader
+	envVars       EnvVarsGetter
 }
 
 // NewFilesResolver constructs the FilesResolver struct.
 func NewFilesResolver(
 	contextLoader ContextLoader,
 	opts FilesResolverOpts,
+	envVars EnvVarsGetter,
 ) FilesResolver {
 
 	return FilesResolver{
 		contextLoader: contextLoader,
 		opts:          opts,
+		envVars:       envVars,
 	}
 }
 
@@ -84,5 +87,9 @@ func (f FilesResolver) resolveContext() string {
 }
 
 func (f FilesResolver) resolveRegion() string {
-	return f.opts.Region
+	if len(f.opts.Region) > 0 {
+		return f.opts.Region
+	}
+
+	return f.envVars.Get(HetznerRegionEnvVar)
 }
