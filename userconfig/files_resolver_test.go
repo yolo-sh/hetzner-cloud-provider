@@ -17,6 +17,7 @@ func TestFilesResolving(t *testing.T) {
 		test                  string
 		configInFile          *userconfig.Config
 		regionOpts            string
+		regionEnvVar          string
 		contextOpts           string
 		errorReturnedByLoader error
 		expectedError         error
@@ -35,6 +36,23 @@ func TestFilesResolving(t *testing.T) {
 			configInFile:   userconfig.NewConfig("a", ""),
 			expectedError:  userconfig.ErrMissingRegion,
 			expectedConfig: nil,
+		},
+
+		{
+			test:           "valid with region sets as env var",
+			configInFile:   userconfig.NewConfig("a", "b"),
+			regionEnvVar:   "c",
+			expectedConfig: userconfig.NewConfig("a", "c"),
+			expectedError:  nil,
+		},
+
+		{
+			test:           "valid with region sets as env var and option",
+			configInFile:   userconfig.NewConfig("a", "b"),
+			regionOpts:     "c",
+			regionEnvVar:   "d",
+			expectedConfig: userconfig.NewConfig("a", "c"),
+			expectedError:  nil,
 		},
 
 		{
@@ -81,12 +99,20 @@ func TestFilesResolving(t *testing.T) {
 				Return(configAsReturnedByProfileLoader, tc.errorReturnedByLoader).
 				AnyTimes()
 
+			envVarsGetterMock := mocks.NewUserConfigEnvVarsGetter(mockCtrl)
+			envVarsGetterMock.
+				EXPECT().
+				Get(userconfig.HetznerRegionEnvVar).
+				Return(tc.regionEnvVar).
+				AnyTimes()
+
 			resolver := userconfig.NewFilesResolver(
 				contextLoaderMock,
 				userconfig.FilesResolverOpts{
 					Region:  tc.regionOpts,
 					Context: tc.contextOpts,
 				},
+				envVarsGetterMock,
 			)
 
 			resolvedConfig, err := resolver.Resolve()
