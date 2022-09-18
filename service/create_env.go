@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
 
 	"github.com/hetznercloud/hcloud-go/hcloud"
@@ -51,7 +52,9 @@ func (h *Hetzner) CreateEnv(
 			return nil
 		}
 
+		serverSSHListenPort := fmt.Sprintf("%d", infrastructure.ServerSSHPort)
 		yoloSSHServerListenPort := constants.SSHServerListenPort
+
 		_, sourceIP, err := net.ParseCIDR("0.0.0.0/0")
 
 		if err != nil {
@@ -62,6 +65,18 @@ func (h *Hetzner) CreateEnv(
 			hetznerClient,
 			prefixResource("firewall"),
 			[]hcloud.FirewallRule{
+				{
+					Direction: hcloud.FirewallRuleDirectionIn,
+					Protocol:  hcloud.FirewallRuleProtocolTCP,
+					Port:      &serverSSHListenPort,
+					SourceIPs: []net.IPNet{
+						{
+							IP:   sourceIP.IP,
+							Mask: sourceIP.Mask,
+						},
+					},
+				},
+
 				{
 					Direction: hcloud.FirewallRuleDirectionIn,
 					Protocol:  hcloud.FirewallRuleProtocolTCP,
@@ -155,10 +170,10 @@ func (h *Hetzner) CreateEnv(
 		}
 
 		initScriptResults, err := infrastructure.LookupServerInitScriptResults(
-			envInfra.Server.PublicIPAddress,
-			constants.SSHServerListenPort,
-			entities.EnvRootUser,
-			envInfra.SSHKey.PEMContent,
+			infra.Server.PublicIPAddress,
+			fmt.Sprintf("%d", infrastructure.ServerSSHPort),
+			infrastructure.ServerRootUser,
+			infra.SSHKey.PEMContent,
 		)
 
 		if err != nil {
@@ -177,6 +192,24 @@ func (h *Hetzner) CreateEnv(
 				return nil
 			},
 			lookupServerInitScriptResults,
+		},
+	)
+
+	waitForAgentToBeReachable := func(infra *EnvInfrastructure) error {
+		return infrastructure.WaitForSSHAvailableInServer(
+			infra.Server.PublicIPAddress,
+			constants.SSHServerListenPort,
+		)
+	}
+
+	envInfraQueue = append(
+		envInfraQueue,
+		queues.InfrastructureQueueSteps[*EnvInfrastructure]{
+			func(*EnvInfrastructure) error {
+				stepper.StartTemporaryStep("Waiting for the Yolo agent to be reachable")
+				return nil
+			},
+			waitForAgentToBeReachable,
 		},
 	)
 

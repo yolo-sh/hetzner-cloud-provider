@@ -1,8 +1,8 @@
 #!/bin/bash
 # 
-# Yolo instance init.
+# Yolo server init.
 # 
-# This is the first script to run during the creation of the instance (via cloud-init).
+# This is the first script to run during the creation of the server (via cloud-init).
 # 
 # See: https://community.hetzner.com/tutorials/basic-cloud-config
 # 
@@ -18,7 +18,7 @@ log () {
 }
 
 log "\n\n"
-log "---- Yolo instance init (start) ----"
+log "---- Yolo server init (start) ----"
 log "\n\n"
 
 # Remove "debconf: unable to initialize frontend: Dialog" warnings
@@ -33,7 +33,8 @@ constructExitJSONResponse () {
   JSON_RESPONSE=$(jq --null-input \
   --arg exitCode "${1}" \
   --arg sshHostKeys "${2}" \
-  '{"exit_code": $exitCode, "ssh_host_keys": $sshHostKeys}')
+  --arg cloudInitLogs "${3}" \
+  '{"exit_code": $exitCode, "ssh_host_keys": $sshHostKeys, "cloud_init_logs": $cloudInitLogs}')
 
   echo "${JSON_RESPONSE}"
 }
@@ -43,39 +44,40 @@ YOLO_INIT_RESULTS_FILE_PATH="/tmp/yolo-init-results"
 
 handleExit () {
   EXIT_CODE=$?
+  CLOUD_INIT_LOGS="$(cat /var/log/cloud-init-output.log)"
 
   rm --force "${YOLO_INIT_RESULTS_FILE_PATH}"
 
   log "\n\n"
   if [[ "${EXIT_CODE}" != 0 ]]; then
-    constructExitJSONResponse "${EXIT_CODE}" "" >> "${YOLO_INIT_RESULTS_FILE_PATH}"
-    log "---- Yolo instance init (failed) (exit code ${EXIT_CODE}) ----"
+    constructExitJSONResponse "${EXIT_CODE}" "" "${CLOUD_INIT_LOGS}" >> "${YOLO_INIT_RESULTS_FILE_PATH}"
+    log "---- Yolo server init (failed) (exit code ${EXIT_CODE}) ----"
   else
     SSH_HOST_KEYS="$(cat "${YOLO_SSH_SERVER_HOST_KEY_FILE_PATH}")"
-    constructExitJSONResponse "${EXIT_CODE}" "${SSH_HOST_KEYS}" >> "${YOLO_INIT_RESULTS_FILE_PATH}"
+    constructExitJSONResponse "${EXIT_CODE}" "${SSH_HOST_KEYS}" "${CLOUD_INIT_LOGS}" >> "${YOLO_INIT_RESULTS_FILE_PATH}"
     
-    log "---- Yolo instance init (success) ----"
+    log "---- Yolo server init (success) ----"
   fi
   log "\n\n"
 
   exit "${EXIT_CODE}"
 }
 
-trap "handleExit" EXIT
+trap 'handleExit' EXIT
 
 # -- System configuration
 
-# Lookup instance architecture for the yolo agent
-INSTANCE_ARCH=""
+# Lookup server architecture for the yolo agent
+SERVER_ARCH=""
 case $(uname -m) in
-  i386)       INSTANCE_ARCH="386" ;;
-  i686)       INSTANCE_ARCH="386" ;;
-  x86_64)     INSTANCE_ARCH="amd64" ;;
-  arm)        dpkg --print-architecture | grep -q "arm64" && INSTANCE_ARCH="arm64" || INSTANCE_ARCH="armv6" ;;
-  aarch64_be) INSTANCE_ARCH="arm64" ;;
-  aarch64)    INSTANCE_ARCH="arm64" ;;
-  armv8b)     INSTANCE_ARCH="arm64" ;;
-  armv8l)     INSTANCE_ARCH="arm64" ;;
+  i386)       SERVER_ARCH="386" ;;
+  i686)       SERVER_ARCH="386" ;;
+  x86_64)     SERVER_ARCH="amd64" ;;
+  arm)        dpkg --print-architecture | grep -q "arm64" && SERVER_ARCH="arm64" || SERVER_ARCH="armv6" ;;
+  aarch64_be) SERVER_ARCH="arm64" ;;
+  aarch64)    SERVER_ARCH="arm64" ;;
+  armv8b)     SERVER_ARCH="arm64" ;;
+  armv8l)     SERVER_ARCH="arm64" ;;
 esac
 
 # -- Create / Configure the user "yolo"
@@ -117,11 +119,11 @@ log "Configuring home directory for user \"yolo\""
 # We want the user "yolo" to be able to 
 # connect through SSH via the generated SSH key.
 # See below.
-INSTANCE_SSH_PUBLIC_KEY="$(cat /root/.ssh/authorized_keys)"
+SERVER_SSH_PUBLIC_KEY="$(cat /root/.ssh/authorized_keys)"
 
 # Run as "yolo"
 sudo --set-home --login --user yolo -- env \
-	INSTANCE_SSH_PUBLIC_KEY="${INSTANCE_SSH_PUBLIC_KEY}" \
+	SERVER_SSH_PUBLIC_KEY="${SERVER_SSH_PUBLIC_KEY}" \
 bash << 'EOF'
 
 mkdir --parents .ssh
@@ -135,7 +137,7 @@ chmod 644 .ssh/yolo-ssh-server-host-key.pub
 chmod 600 .ssh/yolo-ssh-server-host-key
 
 if [[ ! -f ".ssh/authorized_keys" ]]; then
-  echo "${INSTANCE_SSH_PUBLIC_KEY}" >> .ssh/authorized_keys
+  echo "${SERVER_SSH_PUBLIC_KEY}" >> .ssh/authorized_keys
 fi
 
 chmod 600 .ssh/authorized_keys
@@ -162,7 +164,7 @@ YOLO_AGENT_SYSTEMD_SERVICE_NAME="yolo-agent.service"
 if [[ ! -f "${YOLO_AGENT_PATH}" ]]; then
   #curl --fail --silent --show-error --location --header "Accept: application/octet-stream" https://api.github.com/repos/yolo-sh/agent/releases/assets/77939680 --output "${YOLO_AGENT_PATH}"
   rm --recursive --force "${YOLO_AGENT_TMP_ARCHIVE_PATH}"
-  curl --fail --silent --show-error --location --header "Accept: application/octet-stream" "https://github.com/yolo-sh/agent/releases/download/v${YOLO_AGENT_VERSION}/agent_${YOLO_AGENT_VERSION}_linux_${INSTANCE_ARCH}.tar.gz" --output "${YOLO_AGENT_TMP_ARCHIVE_PATH}"
+  curl --fail --silent --show-error --location --header "Accept: application/octet-stream" "https://github.com/yolo-sh/agent/releases/download/v${YOLO_AGENT_VERSION}/agent_${YOLO_AGENT_VERSION}_linux_${SERVER_ARCH}.tar.gz" --output "${YOLO_AGENT_TMP_ARCHIVE_PATH}"
   tar --directory "${YOLO_AGENT_DIR}" --extract --file "${YOLO_AGENT_TMP_ARCHIVE_PATH}"
   rm --recursive --force "${YOLO_AGENT_TMP_ARCHIVE_PATH}"
 fi
