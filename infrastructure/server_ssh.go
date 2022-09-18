@@ -11,9 +11,15 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+const (
+	ServerSSHPort  = 22
+	ServerRootUser = "root"
+)
+
 type RawInitServerScriptResults struct {
-	ExitCode    string `json:"exit_code"`
-	SSHHostKeys string `json:"ssh_host_keys"`
+	ExitCode      string `json:"exit_code"`
+	SSHHostKeys   string `json:"ssh_host_keys"`
+	CloudInitLogs string `json:"cloud_init_logs"`
 }
 
 type InitServerScriptResults struct {
@@ -22,9 +28,9 @@ type InitServerScriptResults struct {
 }
 
 func LookupServerInitScriptResults(
-	instancePublicIPAddress string,
-	instanceSSHPort string,
-	instanceLoginUser string,
+	serverPublicIPAddress string,
+	serverSSHPort string,
+	serverLoginUser string,
 	sshPrivateKeyContent string,
 ) (returnedInitScriptResults *InitServerScriptResults, returnedError error) {
 
@@ -37,9 +43,9 @@ func LookupServerInitScriptResults(
 			return
 		default:
 			initScriptOutput, err := runCMDOnServerViaSSH(
-				instancePublicIPAddress,
-				instanceSSHPort,
-				instanceLoginUser,
+				serverPublicIPAddress,
+				serverSSHPort,
+				serverLoginUser,
 				sshPrivateKeyContent,
 				"cat /tmp/yolo-init-results",
 			)
@@ -56,7 +62,7 @@ func LookupServerInitScriptResults(
 
 			if err != nil {
 				returnedError = fmt.Errorf(
-					"instance init script exited with invalid JSON (\"%s\") (\"%+v\")",
+					"server cloud init script exited with invalid JSON (\"%s\") (\"%+v\")",
 					initScriptOutput,
 					err,
 				)
@@ -65,8 +71,9 @@ func LookupServerInitScriptResults(
 
 			if initScriptResults.ExitCode != "0" {
 				returnedError = fmt.Errorf(
-					"instance init script exited with code \"%s\"",
+					"server cloud init script exited with code \"%s\".\n\n%s",
 					initScriptResults.ExitCode,
+					initScriptResults.CloudInitLogs,
 				)
 				return
 			}
@@ -77,7 +84,7 @@ func LookupServerInitScriptResults(
 
 			if err != nil {
 				returnedError = fmt.Errorf(
-					"instance init script exited with invalid SSH host keys (\"%s\") (\"%+v\")",
+					"server cloud init script exited with invalid SSH host keys (\"%s\") (\"%+v\")",
 					initScriptResults.SSHHostKeys,
 					err,
 				)
@@ -96,8 +103,8 @@ func LookupServerInitScriptResults(
 }
 
 func WaitForSSHAvailableInServer(
-	instancePublicIPAddress string,
-	instanceSSHPort string,
+	serverPublicIPAddress string,
+	serverSSHPort string,
 ) (returnedError error) {
 
 	pollTimeoutChan := time.After(5 * time.Minute)
@@ -112,8 +119,8 @@ func WaitForSSHAvailableInServer(
 			conn, err := net.DialTimeout(
 				"tcp",
 				net.JoinHostPort(
-					instancePublicIPAddress,
-					instanceSSHPort,
+					serverPublicIPAddress,
+					serverSSHPort,
 				),
 				SSHConnTimeout,
 			)
@@ -134,8 +141,8 @@ func WaitForSSHAvailableInServer(
 }
 
 func runCMDOnServerViaSSH(
-	instancePublicIPAddress string,
-	instanceSSHPort string,
+	serverPublicIPAddress string,
+	serverSSHPort string,
 	loginUser string,
 	privateKeyContent string,
 	cmd string,
@@ -161,8 +168,8 @@ func runCMDOnServerViaSSH(
 	client, err := ssh.Dial(
 		"tcp",
 		net.JoinHostPort(
-			instancePublicIPAddress,
-			instanceSSHPort,
+			serverPublicIPAddress,
+			serverSSHPort,
 		),
 		config,
 	)
